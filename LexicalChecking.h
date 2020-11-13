@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <string>
+#include "Tools.h"
 
 using namespace std;
 
@@ -49,17 +50,17 @@ string checkState(int state) {
 }
 
 // Check the token of a character if it is an OPERATOR
-bool checkOperator(char ch) {
-	if (ch == '*' || ch == '+' || ch == '-' || ch == '=' || ch == '/' || ch == '>' || ch == '<' || ch == '%') {
+bool checkOperator(string word) {
+	if (word == "*" || word == "+" || word == "-" || word == "=" || word == "/" || word == ">" || word == "<" || word == "%") {
 		return true;
 	}
 	return false;
 }
 
 // Check the token of a character if it is a SEPARATOR
-bool checkSeparator(char ch) {
-	if (ch == '\'' || ch == '(' || ch == ')' || ch == '{' || ch == '}' || ch == '[' || ch == ']' || ch == ',' ||
-		ch == '.' || ch == ':' || ch == ';') {
+bool checkSeparator(string word) {
+	if (word == "'" || word == "(" || word == ")" || word == "{" || word == "}" || word == "[" || word == "]" || word == "," ||
+		word == "." || word == ":" || word == ";") {
 		return true;
 	}
 	return false;
@@ -96,4 +97,114 @@ string lexer(string word)
 		}
 		return checkState(currentState);
 	}
+}
+
+
+// Check each letter in a string
+LinkedList<string> checkWord(string line, int& blockComment)
+{
+	string word;
+	string testChar;
+	LinkedList<string> list;
+
+	for (int c = 0; c < line.length(); c++) {
+		testChar.clear();
+		testChar = line[c];
+		
+		if (testChar == "!")
+			blockComment++;
+		// If the program see ! and the blockComment variable is not == to 2
+		// it will skip that char
+		if (blockComment == 1 || blockComment == 2) {
+			if (blockComment == 2) {
+				blockComment = 0;
+			}
+			continue;
+		}
+
+		// This is to check if the word is not empty and the first char of the word
+		// is not a letter but testWord is then it will do a lexical
+		// checking the word
+		else if (!isEmpty(word) && !isalpha(word[0]) && isalpha(testChar[0])) {
+			list.push_back(lexer(word), word);
+			word.clear();
+		}
+		else if (testChar == " " || testChar == "\t") {
+			if (!word.empty()) {
+				list.push_back(lexer(word), word);
+				word.clear();
+			}
+			continue;
+		}
+		// Check if 'testWord' is an OPERATOR
+		else if (checkOperator(testChar)) {
+			if (!word.empty()) {
+				list.push_back(lexer(word), word);
+				word.clear();
+
+				list.push_back("OPERATOR", testChar);
+			}
+			else {
+				list.push_back("OPERATOR", testChar);
+			}
+			continue;
+		}
+		// Check if 'testWord' is a SEPARATOR
+		else if (checkSeparator(testChar)) {
+			if (!word.empty()) {
+				if (testChar == ".") {
+					// The program will loop through the word to see if there are any digit on it
+					for (int i = 0; i < word.length(); i++)
+					{
+						// If it found one that is not, it will do the lexical checking for that word
+						// before pushing "." in the list
+						if (!isdigit(word[i]))
+						{
+							list.push_back(lexer(word), word);
+							word.clear();
+
+							list.push_back("SEPARATOR", testChar);
+							break;
+						}
+						// If it reaches the end and no non-digit char is found then it will push "." into word
+						if (i == word.length() - 1)
+						{
+							word += line[c];
+							// If it is at the end of the line then do a lexical checking for the word
+							if (c == line.length() - 1)
+							{
+								list.push_back(lexer(word), word);
+								word.clear();
+							}
+							break;
+						}
+					}
+				}
+				// This is for if the testWord is not "."
+				else
+				{
+					list.push_back(lexer(word), word);
+					word.clear();
+
+					list.push_back("SEPARATOR", testChar);
+				}
+			}
+			else {
+				list.push_back("SEPARATOR", testChar);
+			}
+			continue;
+		}
+
+		// Combine a single checked character of 'testWord' into 'word'
+		word += line[c];
+
+		// Check the last character of a string
+		if (c == line.length() - 1) {
+			list.push_back(lexer(word), word);
+			word.clear();
+		}
+		
+	}
+
+	return list;
 }

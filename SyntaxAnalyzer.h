@@ -10,30 +10,39 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
-#include "LexicalChecking.h"
 #include "Tools.h"
+using namespace std;
 
-void statement(string test, int& index);
-void expression(string test, int& index);
-bool term(string test, int& cont);
-void expression_prime(string test, int& index);
-bool factor(string test, int index);
-void term_prime(string test, int & index);
+// Functions' Prototype
+void statement(LinkedList<string>&);
+void expression(LinkedList<string>&);
+bool term(LinkedList<string>&);
+void expression_prime(LinkedList<string>&);
+bool factor(LinkedList<string>&);
+void term_prime(LinkedList<string>&);
 
-void statement(string test, int& index) {
-	string testID;
-	testID = test[index];
-	if (lexer(testID) == "IDENTIFIER") {
-		cout << "Token: Identifier\t" << "|\t" << "Lexeme: " << test[index] << endl;
+// Analyze the declarative statement or the assignment statement
+void statement(LinkedList<string>& data) {
+	// Case 1: Analyze the assignment statement
+	if (data.showToken() == "IDENTIFIER") {
+		cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
 		cout << "   <Statement> -> <Assign>" << endl;
 		cout << "   <Assign> -> <Identifier> = <Expression>;" << endl << endl;
-		index++;
-		if (checkOperator(test[index]) && test[index] == '=') {
-			cout << "Token: Operator\t\t" << "|\t" << "Lexeme: " << test[index] << endl << endl;
-			index++;
-			expression(test, index);
-			if (checkSeparator(test[index]) && test[index] == ';') {
-				cout << "Token: Operator\t\t" << "|\t" << "Lexeme: " << test[index] << endl;
+		data.pop_front();
+		if (data.isEmpty()) {
+			cout << "SYNTAX ERROR!! EXPECT IDENTIFIER" << endl;
+			return;
+		}
+		if (data.showLexeme() == "=") {
+			cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl << endl;
+			data.pop_front();
+			expression(data);
+			if (data.isEmpty()) {
+				cout << "WARNING!! EXPECT ';' TO END STATEMENT" << endl;
+				return;
+			}
+			if (data.showLexeme() == ";") {
+				cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
 				cout << "   <TermPrime> -> Epsilon" << endl;
 				cout << "   <ExpressionPrime> -> Epsilon" << endl << endl;
 			}
@@ -41,99 +50,128 @@ void statement(string test, int& index) {
 		else
 			cout << "SYNTAX ERROR!! EXPECT OPERATOR '='" << endl;
 	}
-	else
-		cout << "SYNTAX ERROR!! EXPECT IDENTIFIER" << endl;
+	// Case 2: Analyze the declarative statement
+	else if (data.showToken() == "KEYWORD") {
+		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << "   <Statement> -> <Declarative>" << endl;
+		cout << "   <Declarative> -> <Type> <ID>" << endl;
+		cout << "   <Type> -> int | bool | float" << endl << endl;
+		data.pop_front();
+		if (data.isEmpty()) {
+			cout << "SYNTAX ERROR!! EXPECT IDENTIFIER OR ID" << endl;
+			return;
+		}
+		if (data.showToken() == "IDENTIFIER") {
+			cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+			cout << "   <ID> -> id" << endl << endl;
+			data.pop_front();
+			if (data.isEmpty()) {
+				cout << "WARNING!! EXPECT ';' TO END STATEMENT" << endl;
+				return;
+			}
+			if (data.showLexeme() == "=") {
+				cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl << endl;
+				data.pop_front();
+				expression(data);
+				if (data.isEmpty()) {
+					cout << "WARNING!! EXPECT ';' TO END STATEMENT" << endl;
+					return;
+				}
+			}
+			if (data.showLexeme() == ";") {
+				cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+				cout << "   <TermPrime> -> Epsilon" << endl;
+				cout << "   <ExpressionPrime> -> Epsilon" << endl << endl;
+			}
+		}
+	}
+	// Case 3: Display the error
+	else {
+		cout << "SYNTAX ERROR!! EXPECT A DECLARACTIVE OR ASSIGNMENT STATEMENT" << endl;
+	}
 }
 
-void expression(string test, int& index) {
-	cout << "Token: Identifier\t" << "|\t" << "Lexeme: " << test[index] << endl;
+// Analyze the expression in the statement
+void expression(LinkedList<string>& data) {
+	cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
 	cout << "   <Expression> -> <Term> <ExpressionPrime>" << endl;
-	if (term(test, index)) {
-		if (index >= test.length()) {
+	if (term(data)) {
+		if (data.isEmpty()) {
 			return;
-		} else {
-			expression_prime(test, index);
 		}
-	} else {
+		expression_prime(data);
+	}
+	else {
 		cout << "SYNTAX ERROR!! EXPECT IDENTIFIER" << endl;
 	}
 }
 
-bool term(string test, int & index) {
-	if (factor(test, index)) {
-		index++;
-		term_prime(test, index);
+// Analyze the term in the statment
+bool term(LinkedList<string>& data) {
+	if (factor(data)) {
+		data.pop_front();
+		term_prime(data);
 		return true;
 	}
 	return false;
 }
 
-void expression_prime(string test, int & index) {
-	if (checkOperator(test[index]) && (test[index] == '+' || test[index] == '-')) {
-		cout << "Token: Operator\t\t" << "|\t" << "Lexeme: " << test[index] << endl;
+// Analyze the expression using left recursion in the statement
+void expression_prime(LinkedList<string>& data) {
+	if (data.isEmpty()) {
+		return;
+	} else if (data.showLexeme() == "+" || data.showLexeme() == "-") {
+		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
 		cout << "   <TermPrime> -> Epsilon" << endl;
-		cout << "   <ExpressionPrime> -> " << test[index] << " <Term> <ExpressionPrime>" << endl << endl;
-		index++;
-		cout << "Token: Identifier\t" << "|\t" << "Lexeme: " << test[index] << endl;
-		if (term(test, index))
-			expression_prime(test, index);
-		else
-		{
+		cout << "   <ExpressionPrime> -> " << data.showLexeme() << " <Term> <ExpressionPrime>" << endl << endl;
+		data.pop_front();
+		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		if (term(data)) {
+			expression_prime(data);
+		}
+		else {
 			cout << "SYNTAX ERROR!! EXPECT IDENTIFIER" << endl;
 			return;
 		}
-	}
-	else if (index >= test.length() || test[index] == ';')
+	} else if (data.showLexeme() == ";") {
 		return;
-	else
+	} else {
 		cout << "SYNTAX ERROR!! EXPECT OPERATOR '+' OR '-'" << endl;
+	}
 }
 
-bool factor(string test, int cont) {
-	if (cont >= test.length()) {
+// Analyze the factor in the statement
+bool factor(LinkedList<string>& data) {
+	if (data.isEmpty()) {
 		return false;
-	}
-	string testID;
-	testID = test[cont];
-	if (lexer(testID) == "IDENTIFIER") {
+	} else if (data.showToken() == "IDENTIFIER") {
 		cout << "   <Term> -> <Factor> <TermPrime>" << endl;
 		cout << "   <Factor> -> ( <Expression> ) | <ID> | <Num>" << endl;
 		cout << "   <ID> -> id" << endl << endl;
-		return true;
 	}
+	return true;
 }
 
-void term_prime(string test, int & index) {
-	if (checkOperator(test[index]) && (test[index] == '*' || test[index] == '/')) {
-		cout << "Token: Operator\t\t" << "|\t" << "Lexeme: " << test[index] << endl;
-		cout << "   <TermPrime> -> " << test[index] << " <Factor> <TermPrime>" << endl << endl;
-		index++;
-		cout << "Token: Identifier\t" << "|\t" << "Lexeme: " << test[index] << endl;
-		if (factor(test, index)) {
-			++index;
-			term_prime(test, index);
-		}
-	} else if (index >= test.length()) {
+// Analye the term using left recursion in the statement
+void term_prime(LinkedList<string>& data) {
+	if (data.isEmpty()) {
 		return;
-	}
-}
-
-bool is_white_space(char c) {
-	return string::npos != WHITESPACE.find(c);
-}
-
-void delete_white_space(string& test) {
-	for (int c = 0; c < test.length(); c++) {
-		if (is_white_space(test[c])) {
-			test.erase(c, 1);
+	} else if (data.showLexeme() == "*" || data.showLexeme() == "/") {
+		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << "   <TermPrime> -> " << data.showLexeme() << " <Factor> <TermPrime>" << endl << endl;
+		data.pop_front();
+		if (data.isEmpty()) {
+			return;
+		}
+		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		if (factor(data)) {
+			data.pop_front();
+			term_prime(data);
 		}
 	}
 }
 
-void syntax_analyzer(string test) {
-	delete_white_space(test);
-	int index = 0;
-	statement(test, index);
+// Start analyzing the syntax based on user's input or a input file
+void syntax_analyzer(LinkedList<string> data) {
+	statement(data);
 }
-
-

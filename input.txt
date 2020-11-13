@@ -1,2 +1,1 @@
-x = a + b;
-y = m * n;
+while (fahr < upper) a = 23.00 whileend
