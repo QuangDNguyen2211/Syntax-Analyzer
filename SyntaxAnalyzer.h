@@ -25,16 +25,17 @@ void term_prime(LinkedList<string>&);
 void statement(LinkedList<string>& data) {
 	// Case 1: Analyze the assignment statement
 	if (data.showToken() == "IDENTIFIER") {
-		cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << left;
+		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 		cout << "   <Statement> -> <Assign>" << endl;
 		cout << "   <Assign> -> <Identifier> = <Expression>;" << endl << endl;
 		data.pop_front();
 		if (data.isEmpty()) {
-			cout << "SYNTAX ERROR!! EXPECT IDENTIFIER" << endl;
+			cout << "SYNTAX ERROR!! EXPECT OPERATOR '='" << endl;
 			return;
 		}
 		if (data.showLexeme() == "=") {
-			cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl << endl;
+			cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl << endl;
 			data.pop_front();
 			expression(data);
 			if (data.isEmpty()) {
@@ -42,7 +43,7 @@ void statement(LinkedList<string>& data) {
 				return;
 			}
 			if (data.showLexeme() == ";") {
-				cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+				cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 				cout << "   <TermPrime> -> Epsilon" << endl;
 				cout << "   <ExpressionPrime> -> Epsilon" << endl << endl;
 			}
@@ -52,7 +53,8 @@ void statement(LinkedList<string>& data) {
 	}
 	// Case 2: Analyze the declarative statement
 	else if (data.showToken() == "KEYWORD") {
-		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << left;
+		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 		cout << "   <Statement> -> <Declarative>" << endl;
 		cout << "   <Declarative> -> <Type> <ID>" << endl;
 		cout << "   <Type> -> int | bool | float" << endl << endl;
@@ -62,16 +64,19 @@ void statement(LinkedList<string>& data) {
 			return;
 		}
 		if (data.showToken() == "IDENTIFIER") {
-			cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
-			cout << "   <Statement> -> <Assign>" << endl;
-			cout << "   <Assign> -> <Identifier> = <Expression>;" << endl << endl;
+			cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
+			cout << "   <ID> -> id" << endl;
 			data.pop_front();
+			if (data.showLexeme() == ";")
+				cout << endl;
 			if (data.isEmpty()) {
 				cout << "WARNING!! EXPECT ';' TO END STATEMENT" << endl;
 				return;
 			}
 			if (data.showLexeme() == "=") {
-				cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl << endl;
+				cout << "   <Statement> -> <Assign>" << endl;
+				cout << "   <Assign> -> <Identifier> = <Expression>;" << endl << endl;
+				cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl << endl;
 				data.pop_front();
 				expression(data);
 				if (data.isEmpty()) {
@@ -80,7 +85,7 @@ void statement(LinkedList<string>& data) {
 				}
 			}
 			if (data.showLexeme() == ";") {
-				cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+				cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 				cout << "   <TermPrime> -> Epsilon" << endl;
 				cout << "   <ExpressionPrime> -> Epsilon" << endl << endl;
 			}
@@ -94,7 +99,7 @@ void statement(LinkedList<string>& data) {
 
 // Analyze the expression in the statement
 void expression(LinkedList<string>& data) {
-	cout << "Token: " << data.showToken() << "\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+	cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 	cout << "   <Expression> -> <Term> <ExpressionPrime>" << endl;
 	if (term(data)) {
 		if (data.isEmpty()) {
@@ -123,11 +128,11 @@ void expression_prime(LinkedList<string>& data) {
 		return;
 	}
 	else if (data.showLexeme() == "+" || data.showLexeme() == "-") {
-		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 		cout << "   <TermPrime> -> Epsilon" << endl;
 		cout << "   <ExpressionPrime> -> " << data.showLexeme() << " <Term> <ExpressionPrime>" << endl << endl;
 		data.pop_front();
-		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 		if (term(data)) {
 			expression_prime(data);
 		}
@@ -154,15 +159,10 @@ bool factor(LinkedList<string>& data) {
 		cout << "   <Factor> -> <ID> | <Num>" << endl;
 		cout << "   <ID> -> id" << endl << endl;
 	}
-	else if (data.showToken() == "INTEGER") {
+	else if (data.showToken() == "INTEGER" || data.showToken() == "REAL") {
 		cout << "   <Term> -> <Factor> <TermPrime>" << endl;
 		cout << "   <Factor> -> <ID> | <Num>" << endl;
-		cout << "   <Num> -> int" << endl << endl;
-	}
-	else if (data.showToken() == "REAL") {
-		cout << "   <Term> -> <Factor> <TermPrime>" << endl;
-		cout << "   <Factor> -> <ID> | <Num>" << endl;
-		cout << "   <Num> -> REAL" << endl << endl;
+		cout << "   <Num> -> int | float" << endl << endl;
 	}
 	return true;
 }
@@ -173,13 +173,13 @@ void term_prime(LinkedList<string>& data) {
 		return;
 	}
 	else if (data.showLexeme() == "*" || data.showLexeme() == "/") {
-		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 		cout << "   <TermPrime> -> " << data.showLexeme() << " <Factor> <TermPrime>" << endl << endl;
 		data.pop_front();
 		if (data.isEmpty()) {
 			return;
 		}
-		cout << "Token: " << data.showToken() << "\t\t|\t" << "Lexeme: " << data.showLexeme() << endl;
+		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
 		if (factor(data)) {
 			data.pop_front();
 			term_prime(data);
