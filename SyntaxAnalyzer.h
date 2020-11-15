@@ -14,130 +14,116 @@
 using namespace std;
 
 // Functions' Prototype
-void statement(LinkedList<string>&);
-void expression(LinkedList<string>&);
-bool term(LinkedList<string>&);
-void expression_prime(LinkedList<string>&);
-bool factor(LinkedList<string>&);
-void term_prime(LinkedList<string>&);
+void statement(LinkedList<string>&, ofstream& writeFile);
+void expression(LinkedList<string>&, ofstream& writeFile);
+bool term(LinkedList<string>&, ofstream& writeFile);
+void expression_prime(LinkedList<string>&, ofstream& writeFile);
+bool factor(LinkedList<string>&, ofstream& writeFile);
+void term_prime(LinkedList<string>&, ofstream& writeFile);
+void print(LinkedList<string> data, ofstream& writeFile, string cases, string on_off);
+void print_error(ofstream& writeFile, string cases);
 
 // Analyze the declarative statement or the assignment statement
-void statement(LinkedList<string>& data) {
+void statement(LinkedList<string>& data, ofstream& writeFile) {
 	// Case 1: Analyze the assignment statement
 	if (data.showToken() == "IDENTIFIER") {
-		cout << left;
-		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-		cout << "   <Statement> -> <Assign>" << endl;
-		cout << "   <Assign> -> <Identifier> = <Expression>;" << endl << endl;
+		print(data, writeFile, "assign", "on");
 		data.pop_front();
-		if (data.isEmpty()) {
-			cout << "SYNTAX ERROR!! EXPECT OPERATOR '='" << endl;
+		if (data.isEmpty() || data.showLexeme() != "=") {
+			print_error(writeFile, "error =");
 			return;
 		}
-		if (data.showLexeme() == "=") {
-			cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl << endl;
+		else if (data.showLexeme() == "=") {
+			print(data, writeFile, "", "on");
 			data.pop_front();
-			expression(data);
-			if (data.isEmpty()) {
-				cout << "WARNING!! EXPECT ';' TO END STATEMENT" << endl;
+			expression(data, writeFile);
+			if (data.isEmpty() || data.showLexeme() != ";") {
+				print_error(writeFile, "error ;");
 				return;
 			}
-			if (data.showLexeme() == ";") {
-				cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-				cout << "   <TermPrime> -> Epsilon" << endl;
-				cout << "   <ExpressionPrime> -> Epsilon" << endl << endl;
-			}
+			print(data, writeFile, ";", "on");
 		}
-		else
-			cout << "SYNTAX ERROR!! EXPECT OPERATOR '='" << endl;
 	}
 	// Case 2: Analyze the declarative statement
 	else if (data.showToken() == "KEYWORD") {
-		cout << left;
-		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-		cout << "   <Statement> -> <Declarative>" << endl;
-		cout << "   <Declarative> -> <Type> <ID>" << endl;
-		cout << "   <Type> -> int | bool | float" << endl << endl;
-		data.pop_front();
-		if (data.isEmpty()) {
-			cout << "SYNTAX ERROR!! EXPECT IDENTIFIER OR ID" << endl;
-			return;
-		}
-		if (data.showToken() == "IDENTIFIER") {
-			cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-			cout << "   <ID> -> id" << endl;
+		if (data.showLexeme() == "int" || data.showLexeme() == "float") {
+			print(data, writeFile, "declarative", "on");
 			data.pop_front();
-			if (data.showLexeme() == ";")
-				cout << endl;
-			if (data.isEmpty()) {
-				cout << "WARNING!! EXPECT ';' TO END STATEMENT" << endl;
+			if (data.isEmpty() || data.showToken() != "IDENTIFIER") {
+				print_error(writeFile, "error id");
 				return;
 			}
-			if (data.showLexeme() == "=") {
-				cout << "   <Statement> -> <Assign>" << endl;
-				cout << "   <Assign> -> <Identifier> = <Expression>;" << endl << endl;
-				cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl << endl;
+			else {
+				print(data, writeFile, "id", "on");
 				data.pop_front();
-				expression(data);
-				if (data.isEmpty()) {
-					cout << "WARNING!! EXPECT ';' TO END STATEMENT" << endl;
+				if (data.isEmpty() || data.showLexeme() != "=" && data.showLexeme() != ";") {
+					print_error(writeFile, "error ; or =");
 					return;
 				}
-			}
-			if (data.showLexeme() == ";") {
-				cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-				cout << "   <TermPrime> -> Epsilon" << endl;
-				cout << "   <ExpressionPrime> -> Epsilon" << endl << endl;
+				else if (data.showLexeme() == "=") {
+					print(data, writeFile, "assign", "off");
+					print(data, writeFile, "", "on");
+					data.pop_front();
+					if (data.isEmpty()) {
+						print_error( writeFile, "error id");
+						return;
+					}
+					expression(data, writeFile);
+				}
+				if (data.isEmpty() || data.showLexeme() != ";") {
+					print_error(writeFile, "error ;");
+					return;
+				}
+				print(data, writeFile, ";", "on");
 			}
 		}
+		else
+			print_error(writeFile, "error declarative");
 	}
 	// Case 3: Display the error
 	else {
-		cout << "SYNTAX ERROR!! EXPECT A DECLARACTIVE OR ASSIGNMENT STATEMENT" << endl;
+		print_error(writeFile, "error");
 	}
 }
 
 // Analyze the expression in the statement
-void expression(LinkedList<string>& data) {
-	cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-	cout << "   <Expression> -> <Term> <ExpressionPrime>" << endl;
-	if (term(data)) {
+void expression(LinkedList<string>& data, ofstream& writeFile) {
+	print(data, writeFile, "expression", "on");
+	if (term(data, writeFile)) {
 		if (data.isEmpty()) {
 			return;
 		}
-		expression_prime(data);
+		expression_prime(data, writeFile);
 	}
 	else {
-		cout << "SYNTAX ERROR!! EXPECT IDENTIFIER" << endl;
+		print_error(writeFile, "error factor");
 	}
 }
 
 // Analyze the term in the statment
-bool term(LinkedList<string>& data) {
-	if (factor(data)) {
+bool term(LinkedList<string>& data, ofstream& writeFile) {
+	if (factor(data, writeFile)) {
 		data.pop_front();
-		term_prime(data);
+		term_prime(data, writeFile);
 		return true;
 	}
 	return false;
 }
 
 // Analyze the expression using left recursion in the statement
-void expression_prime(LinkedList<string>& data) {
+void expression_prime(LinkedList<string>& data, ofstream& writeFile) {
 	if (data.isEmpty()) {
 		return;
 	}
 	else if (data.showLexeme() == "+" || data.showLexeme() == "-") {
-		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-		cout << "   <TermPrime> -> Epsilon" << endl;
-		cout << "   <ExpressionPrime> -> " << data.showLexeme() << " <Term> <ExpressionPrime>" << endl << endl;
+		print(data, writeFile, "expression prime", "on");
 		data.pop_front();
-		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-		if (term(data)) {
-			expression_prime(data);
+		print(data, writeFile, "", "on");
+		if (term(data, writeFile)) {
+			expression_prime(data, writeFile);
 		}
 		else {
-			cout << "SYNTAX ERROR!! EXPECT IDENTIFIER" << endl;
+			print_error(writeFile, "error id");
 			return;
 		}
 	}
@@ -145,49 +131,126 @@ void expression_prime(LinkedList<string>& data) {
 		return;
 	}
 	else {
-		cout << "SYNTAX ERROR!! EXPECT OPERATOR '+' OR '-'" << endl;
+		print_error(writeFile, "error ep");
 	}
 }
 
 // Analyze the factor in the statement
-bool factor(LinkedList<string>& data) {
+bool factor(LinkedList<string>& data, ofstream& writeFile) {
 	if (data.isEmpty()) {
 		return false;
 	}
 	else if (data.showToken() == "IDENTIFIER") {
-		cout << "   <Term> -> <Factor> <TermPrime>" << endl;
-		cout << "   <Factor> -> <ID> | <Num>" << endl;
-		cout << "   <ID> -> id" << endl << endl;
+		print(data, writeFile, "identifier", "off");
+		return true;
 	}
 	else if (data.showToken() == "INTEGER" || data.showToken() == "REAL") {
-		cout << "   <Term> -> <Factor> <TermPrime>" << endl;
-		cout << "   <Factor> -> <ID> | <Num>" << endl;
-		cout << "   <Num> -> int | float" << endl << endl;
+		print(data, writeFile, "num", "off");
+		return true;
 	}
-	return true;
+	return false;
 }
 
 // Analye the term using left recursion in the statement
-void term_prime(LinkedList<string>& data) {
+void term_prime(LinkedList<string>& data, ofstream& writeFile) {
 	if (data.isEmpty()) {
 		return;
 	}
 	else if (data.showLexeme() == "*" || data.showLexeme() == "/") {
-		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-		cout << "   <TermPrime> -> " << data.showLexeme() << " <Factor> <TermPrime>" << endl << endl;
+		print(data, writeFile, "term prime", "on");
 		data.pop_front();
 		if (data.isEmpty()) {
 			return;
 		}
-		cout << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
-		if (factor(data)) {
+		print(data, writeFile, "", "on");
+		if (factor(data, writeFile)) {
 			data.pop_front();
-			term_prime(data);
+			term_prime(data, writeFile);
 		}
 	}
 }
 
+void print_error(ofstream& writeFile, string cases) {
+	if (cases == "error") {
+		writeFile << "EXPECT AN IDENTIFIER OR INT OR FLOAT FOR ASSIGMENT OR DECLARATIVE STATEMENT" << endl;
+		return;
+	}
+	else if (cases == "error =") {
+		writeFile << "SYNTAX ERROR!! = NEEDED" << endl;
+		return;
+	}
+	else if (cases == "error ;") {
+		writeFile << "SYNTAX ERROR!! ; NEEDED TO END STATEMENT" << endl;
+		return;
+	}
+	else if (cases == "error declarative") {
+		writeFile << "TYPE ERROR!! INT OR FLOAT NEEDED" << endl;
+		return;
+	}
+	else if (cases == "error id") {
+		writeFile << "SYNTAX ERROR!! IDENTIFIER NEEDED" << endl;
+		return;
+	}
+	else if (cases == "error ; or =") {
+		writeFile << "SYNTAX ERROR!! ; OR = NEEDED" << endl;
+		return;
+	}
+	else if (cases == "error factor") {
+		writeFile << "SYNTAX ERROR!! IDENTIFIER OR INTEGER OR FLOAT NEEDED" << endl;
+		return;
+	}
+	else if (cases == "error ep") {
+		writeFile << "SYNTAX ERROR!! + or - NEEDED" << endl;
+		return;
+	}
+
+}
+
+void print(LinkedList<string> data, ofstream& writeFile, string cases, string on_off)
+{
+	if (on_off == "on") {
+		writeFile << "Token: " << setw(20) << data.showToken() << setw(11) << "|" << "Lexeme: " << setw(20) << data.showLexeme() << endl;
+	}
+
+	if(cases == "assign") {
+		writeFile << "   <Statement> -> <Assign>" << endl
+			<< "   <Assign> -> <Identifier> = <Expression>;" << endl;
+	}
+	else if (cases == "declarative") {
+		writeFile << "   <Statement> -> <Declarative>" << endl
+			<< "   <Declarative> -> <Type> <ID>" << endl
+			<< "   <Type> -> int | bool | float" << endl;
+	}
+	else if (cases == "id") {
+		writeFile << "   <ID> -> id" << endl;
+	}
+	else if (cases == "expression") {
+		writeFile << "   <Expression> -> <Term> <ExpressionPrime>" << endl;
+	}
+	else if (cases == "expression prime") {
+		writeFile << "   <TermPrime> -> Epsilon" << endl
+			<< "   <ExpressionPrime> -> " << data.showLexeme() << " <Term> <ExpressionPrime>" << endl;
+	}
+	else if (cases == "term prime") {
+		writeFile << "   <TermPrime> -> " << data.showLexeme() << " <Factor> <TermPrime>" << endl;
+	}
+	else if (cases == "identifier") {
+		writeFile << "   <Term> -> <Factor> <TermPrime>" << endl 
+			<< "   <Factor> -> <ID> | <Num>" << endl 
+			<< "   <ID> -> id" << endl;
+	}
+	else if (cases == "num") {
+		writeFile << "   <Term> -> <Factor> <TermPrime>" << endl
+			<< "   <Factor> -> <ID> | <Num>" << endl
+			<< "   <Num> -> int | float" << endl;
+	}
+	else if (cases == ";") {
+		writeFile << "   <TermPrime> -> Epsilon" << endl
+			<< "   <ExpressionPrime> -> Epsilon" << endl;
+	}
+}
+
 // Start analyzing the syntax based on user's input or a input file
-void syntax_analyzer(LinkedList<string> data) {
-	statement(data);
+void syntax_analyzer(LinkedList<string> data, ofstream &writeFile) {
+	statement(data, writeFile);
 }

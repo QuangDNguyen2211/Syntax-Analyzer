@@ -18,35 +18,39 @@
 using namespace std;
 
 int main() {
-	// Variable for reading user's input for selecting the mode of the syntax analyzer
-	int choice;
-	// Design the menu driven for the program
-		// Mode 1: Let user input a partial code and do the syntax analyzer
-		// Mode 2: Do the syntax analyzer from a source file
-	cout << "\t=================================\n"
-		 << "\t   WELCOME TO SYNTAX ANALYZER\n"
-		 << "\t=================================\n"
-		 << "\t           MAIN MENU\n"
-		 << "   1. Manual\n"
-		 << "   2. Read from a file\n"
-		 << "   3. Exit\n\n";
+	while (true)
+	{
+		// Variable for reading user's input for selecting the mode of the syntax analyzer
+		int choice;
+		ofstream writeFile("output.txt");
+		writeFile << left;
+		// Design the menu driven for the program
+			// Mode 1: Let user input a partial code and do the syntax analyzer
+			// Mode 2: Do the syntax analyzer from a source file
+		cout << "\t=================================\n"
+			<< "\t   WELCOME TO SYNTAX ANALYZER\n"
+			<< "\t=================================\n"
+			<< "\t           MAIN MENU\n"
+			<< "   1. Manual\n"
+			<< "   2. Read from a file\n"
+			<< "   3. Exit\n\n";
 
-	// Get and check user's input
-	// If user inputted '1', the program will be in Mode 1
-	// If user inputted '2', the program will be in Mode 2
-	// If user inputted '3', the program will be terminal
-	// If user's input is bad, ask them to input again
-	choice = getBoundedInt("Select your choice [Integer Only]: ", 1, 3);
+		// Get and check user's input
+		// If user inputted '1', the program will be in Mode 1
+		// If user inputted '2', the program will be in Mode 2
+		// If user inputted '3', the program will be terminal
+		// If user's input is bad, ask them to input again
+		choice = getBoundedInt("Select your choice [Integer Only]: ", 1, 3);
 
-	// Variable for counting and checking a single or block comment
-	int blockComment = 0;
+		// Variable for counting and checking a single or block comment
+		int blockComment = 0;
 
-	// Define the instance named "list" for the object "LinkedList"
-	// "list" will contain two data which are tokens and lexemes
-	LinkedList<string> list;
+		// Define the instance named "list" for the object "LinkedList"
+		// "list" will contain two data which are tokens and lexemes
+		LinkedList<string> list;
 
-	switch (choice) {
-		case 1: 
+		switch (choice) {
+		case 1:
 		{
 			string line;
 			cout << "\nInput your code: ";
@@ -57,11 +61,11 @@ int main() {
 			list = checkWord(line, blockComment);
 			cout << endl;
 			// Call function "syntax_analyzer()" to do the syntax analyzer
-			syntax_analyzer(list);
+			syntax_analyzer(list, writeFile);
 			cout << "SYNTAX ANALYZER COMPLETED.\n";
-			
+
 		} break;
-		case 2: 
+		case 2:
 		{
 			string fileName;
 			while (true) {
@@ -71,17 +75,17 @@ int main() {
 				// Open the file
 				fstream myFile(fileName);
 				if (myFile.is_open())
-				{	
+				{
 					// Read line by line from a file
 					// Then call function "checkWord()" to do the lexical analyzer of each line
 					// Store the data (tokens and lexemes) into "list" if any
 					string readFile;
 					while (getline(myFile, readFile)) {
-						list.clear();
+						//list.clear();
 						list = list + checkWord(readFile, blockComment);
 						// Call function "syntax_analyzer()" to do the syntax analyzer of each line
-						syntax_analyzer(list);
 					}
+					syntax_analyzer(list, writeFile);
 					cout << "SYNTAX ANALYZER COMPLETED.\n";
 				}
 				else {
@@ -94,11 +98,12 @@ int main() {
 				break;
 			}
 		} break;
-		default: 
+		default:
 		{
 			// The program will be terminal when entered '3'
 			cout << "The program was terminated.\n";
 			return 0;
+		}
 		}
 	}
 	return 0;
