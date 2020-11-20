@@ -18,8 +18,6 @@
 using namespace std;
 
 int main() {
-	while (true)
-	{
 		// Variable for reading user's input for selecting the mode of the syntax analyzer
 		int choice;
 		ofstream writeFile("output.txt");
@@ -60,9 +58,16 @@ int main() {
 			// Then store the data (tokens and lexemes) into "list" if any
 			list = checkWord(line, blockComment);
 			cout << endl;
-			// Call function "syntax_analyzer()" to do the syntax analyzer
-			syntax_analyzer(list, writeFile);
-			cout << "SYNTAX ANALYZER COMPLETED.\n";
+			if (!list.isEmpty()) {
+				// Call function "syntax_analyzer()" to do the syntax analyzer
+				syntax_analyzer(list, writeFile);
+			}
+			else {
+				cout << "YOU INPUTTED A COMMENT NOT THE PARTIAL SOURCE CODE.\n";
+				break;
+			}
+			cout << "\nSYNTAX ANALYZER COMPLETED.\n";
+			cout << "\nSyntax Analyzers saved into a file \"output.txt\" as default.\n";
 
 		} break;
 		case 2:
@@ -72,6 +77,7 @@ int main() {
 				cout << "\nInput the file's name: ";
 				// Get user's input
 				getline(cin, fileName);
+				cout << endl;
 				// Open the file
 				fstream myFile(fileName);
 				if (myFile.is_open())
@@ -81,12 +87,15 @@ int main() {
 					// Store the data (tokens and lexemes) into "list" if any
 					string readFile;
 					while (getline(myFile, readFile)) {
-						//list.clear();
+						list.clear();
 						list = list + checkWord(readFile, blockComment);
-						// Call function "syntax_analyzer()" to do the syntax analyzer of each line
+						if (!list.isEmpty()) {
+							// Call function "syntax_analyzer()" to do the syntax analyzer of each line
+							syntax_analyzer(list, writeFile);
+						}
 					}
-					syntax_analyzer(list, writeFile);
-					cout << "SYNTAX ANALYZER COMPLETED.\n";
+					cout << "\nSYNTAX ANALYZER COMPLETED.\n";
+					cout << "\nSyntax Analyzers saved into a file \"output.txt\" as default.\n";
 				}
 				else {
 					// Show the error and ask user's input again
@@ -103,7 +112,6 @@ int main() {
 			// The program will be terminal when entered '3'
 			cout << "The program was terminated.\n";
 			return 0;
-		}
 		}
 	}
 	return 0;
