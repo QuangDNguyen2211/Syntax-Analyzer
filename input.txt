@@ -1,1 +1,6 @@
-while (fahr < upper) a = 23.00 whileend
+! This is a comment !
+int n;
+n = a + b;
+
+! This is another comment !
+bool i = true;
