@@ -263,12 +263,14 @@ void print(LinkedList<string> data, ofstream& writeFile, string cases, string on
 		// Display on the screen
 		cout << "   <Statement> -> <Declarative>" << endl
 			 << "   <Declarative> -> <Type> <ID>" << endl
-			 << "   <Type> -> int | float | bool" << endl;
+			 << "   <Type> -> int | float | bool" << endl
+			 << "   <ID> -> id" << endl;
 		// Write into the destination file
 		writeFile << "   <Statement> -> <Declarative>" << endl
 			      << "   <Declarative> -> <Type> <ID>" << endl
-			      << "   <Type> -> int | float | bool" << endl;
-	}
+			      << "   <Type> -> int | float | bool" << endl
+				  << "   <ID> -> id" << endl;
+	}			
 	else if (cases == "id") {
 		// Display on the screen
 		cout << "   <ID> -> id" << endl;
