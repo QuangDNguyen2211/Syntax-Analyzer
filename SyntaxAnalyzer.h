@@ -126,6 +126,7 @@ void statement(LinkedList<string>& data, ofstream& writeFile) {
 							}
 						} else {
 							cout << "\nSYNTAX ERROR: \"" << data.showLexeme() << "\"" << endl;
+							writeFile << "\nSYNTAX ERROR: \"" << data.showLexeme() << "\"" << endl;
 						}
 					}
 				} else {
@@ -221,7 +222,7 @@ bool factor(LinkedList<string>& data, ofstream& writeFile) {
 	return false;
 }
 
-// Analye the term using left recursion in the statement
+// Analyze the term using left recursion in the statement
 void term_prime(LinkedList<string>& data, ofstream& writeFile) {
 	if (data.isEmpty()) {
 		return;
@@ -240,6 +241,7 @@ void term_prime(LinkedList<string>& data, ofstream& writeFile) {
 	}
 }
 
+// Analyze the condition for while and if else statement
 bool checkConditional(LinkedList<string>& data, ofstream& writeFile) {
 	if (data.showLexeme() == "(") {
 		print(data, writeFile, "", "on");
@@ -347,7 +349,8 @@ void print(LinkedList<string> data, ofstream& writeFile, string cases, string on
 			 << "   <Type> -> int | float | bool" << endl
 			 << "   <ID> -> id" << endl;
 		// Write into the destination file
-		writeFile << "   <Statement> -> <Declarative>" << endl
+		writeFile << "   <Statement> -> <Declarative> | if <Conditional> then <Statement> else <Statement> endif" << endl
+				  << "   <Statement> -> while <Conditional> do <Statement> whileend" << endl
 			      << "   <Declarative> -> <Type> <ID>" << endl
 				  << "   <Conditional> -> ( <Expression> <Relop> <Expression> ) | ( <Expression> )" << endl
 				  << "   <Relop> -> < | > " << endl
