@@ -51,7 +51,8 @@ string checkState(int state) {
 
 // Check the token of a character if it is an OPERATOR
 bool checkOperator(string word) {
-	if (word == "*" || word == "+" || word == "-" || word == "=" || word == "/" || word == ">" || word == "<" || word == "%") {
+	if (word == "*" || word == "+" || word == "-" || word == "=" || word == "/" || word == ">" || word == "<" || word == "%" ||
+		word == "==" || word == ">=" || word == "<=") {
 		return true;
 	}
 	return false;

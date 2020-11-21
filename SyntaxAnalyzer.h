@@ -20,6 +20,7 @@ bool term(LinkedList<string>&, ofstream& writeFile);
 void expression_prime(LinkedList<string>&, ofstream& writeFile);
 bool factor(LinkedList<string>&, ofstream& writeFile);
 void term_prime(LinkedList<string>&, ofstream& writeFile);
+bool checkConditional(LinkedList<string>&, ofstream& writeFile);
 void print(LinkedList<string> data, ofstream& writeFile, string cases, string on_off);
 void print_error(ofstream& writeFile, string cases);
 
@@ -45,11 +46,13 @@ void statement(LinkedList<string>& data, ofstream& writeFile) {
 			if (data.isEmpty() || data.showLexeme() != ";") {
 				print_error(writeFile, "error ;");
 				return;
+			} else if (data.showLexeme() == "whileend" || data.showLexeme() == "endif") {
+				return;
 			}
 			print(data, writeFile, ";", "on");
 		}
 	}
-	// Case 2: Analyze the declarative statement
+	// Case 2: Analyze the declarative, while, and if else statement
 	else if (data.showToken() == "KEYWORD") {
 		if (data.showLexeme() == "int" || data.showLexeme() == "float" || data.showLexeme() == "bool") {
 			print(data, writeFile, "declarative", "on");
@@ -78,8 +81,65 @@ void statement(LinkedList<string>& data, ofstream& writeFile) {
 				if (data.isEmpty() || data.showLexeme() != ";") {
 					print_error(writeFile, "error ;");
 					return;
+				} else if (data.showLexeme() == "whileend" || data.showLexeme() == "endif") {
+					return;
 				}
 				print(data, writeFile, ";", "on");
+			}
+		}
+		else if (data.showLexeme() == "while" || data.showLexeme() == "if") {
+			print(data, writeFile, "declarative", "on");
+			data.pop_front();
+			if (data.isEmpty()) {
+				return;
+			}
+			else {
+				if (checkConditional(data, writeFile)) {
+					data.pop_front();
+					if (data.isEmpty()) {
+						return;
+					} else {
+						if (data.showLexeme() == "then" || data.showLexeme() == "do") {
+							print(data, writeFile, "", "on");
+							data.pop_front();
+							if (data.isEmpty()) {
+								return;
+							} else {
+								statement(data, writeFile);
+								if (data.showLexeme() == "else") {
+									print(data, writeFile, "", "on");
+									data.pop_front();
+									if (data.isEmpty()) {
+										return;
+									} else {
+										statement(data, writeFile);
+										if (data.showLexeme() == "endif") {
+											print(data, writeFile, "", "on");
+											return;
+										}
+									}
+								}
+								else if (data.showLexeme() == "whileend") {
+									print(data, writeFile, "", "on");
+									return;
+								}
+							}
+						} else {
+							cout << "\nSYNTAX ERROR: \"" << data.showLexeme() << "\"" << endl;
+						}
+					}
+				} else {
+					cout << "\nSYNTAX ERROR: LACK OF \"(\" AND \")\"\n";
+					writeFile << "\nSYNTAX ERROR: LACK OF \"(\" AND \")\"\n";
+					cout << "EXPECTED: (";
+					while (!data.isEmpty()) {
+						cout << data.showLexeme();
+						writeFile << data.showLexeme();
+						data.pop_front();
+					}
+					cout << ")\n";
+					writeFile << ")\n";
+				}
 			}
 		}
 		else {
@@ -133,7 +193,7 @@ void expression_prime(LinkedList<string>& data, ofstream& writeFile) {
 			return;
 		}
 	}
-	else if (data.showLexeme() == ";") {
+	else if (data.showLexeme() == ";" || data.showLexeme() == ")" || data.showLexeme() == "else" || data.showLexeme() == "whileend" || data.showLexeme() == "endif") {
 		return;
 	}
 	else {
@@ -166,7 +226,7 @@ void term_prime(LinkedList<string>& data, ofstream& writeFile) {
 	if (data.isEmpty()) {
 		return;
 	}
-	else if (data.showLexeme() == "*" || data.showLexeme() == "/") {
+	else if (data.showLexeme() == "*" || data.showLexeme() == "/" || data.showLexeme() == ">" || data.showLexeme() == "<") {
 		print(data, writeFile, "term prime", "on");
 		data.pop_front();
 		if (data.isEmpty()) {
@@ -178,6 +238,24 @@ void term_prime(LinkedList<string>& data, ofstream& writeFile) {
 			term_prime(data, writeFile);
 		}
 	}
+}
+
+bool checkConditional(LinkedList<string>& data, ofstream& writeFile) {
+	if (data.showLexeme() == "(") {
+		print(data, writeFile, "", "on");
+		data.pop_front();
+		if (data.isEmpty()) {
+			return false;
+		}
+		else {
+			expression(data, writeFile);
+			if (data.showLexeme() == ")") {
+				print(data, writeFile, "", "on");
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 // Analyze the error of the source code and display on the screen and write to the file
@@ -261,13 +339,18 @@ void print(LinkedList<string> data, ofstream& writeFile, string cases, string on
 	}
 	else if (cases == "declarative") {
 		// Display on the screen
-		cout << "   <Statement> -> <Declarative>" << endl
+		cout << "   <Statement> -> <Declarative> | if <Conditional> then <Statement> else <Statement> endif" << endl
+			 << "   <Statement> -> while <Conditional> do <Statement> whileend" << endl
 			 << "   <Declarative> -> <Type> <ID>" << endl
+			 << "   <Conditional> -> ( <Expression> <Relop> <Expression> ) | ( <Expression> )" << endl
+			 << "   <Relop> -> < | > " << endl
 			 << "   <Type> -> int | float | bool" << endl
 			 << "   <ID> -> id" << endl;
 		// Write into the destination file
 		writeFile << "   <Statement> -> <Declarative>" << endl
 			      << "   <Declarative> -> <Type> <ID>" << endl
+				  << "   <Conditional> -> ( <Expression> <Relop> <Expression> ) | ( <Expression> )" << endl
+				  << "   <Relop> -> < | > " << endl
 			      << "   <Type> -> int | float | bool" << endl
 				  << "   <ID> -> id" << endl;
 	}			
